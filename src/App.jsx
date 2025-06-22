@@ -12,24 +12,41 @@ function App() {
   const handleAddPost = (post) => {
     const id = posts.length ? Number(posts[posts.length - 1].id) + 1 : 1;
     setPosts([
-      ...posts, {
+      ...posts,
+      {
         id: id.toString(),
-        ...post
-      }
-    ])
+        ...post,
+      },
+    ]);
   };
-  const handleEditPost = (id) => {};
+  const handleEditPost = (updatedPost) => {
+    setPosts(
+      posts.map((post) => {
+        if (post.id === updatedPost.id) {
+          return updatedPost;
+        }
+        return post;
+      })
+    );
+    setPost(null);
+  };
 
-  const handleDeletePost = (id) => {};
+  const handleDeletePost = (id) => {
+    setPosts(posts.filter((post) => post.id !== id));
+  };
   return (
     <>
       <div>
         <h1>Api Requests with Axios</h1>
         <hr />
         <div>
-          <Posts posts={posts} />
+          <Posts posts={posts} onDelete={handleDeletePost} onEdit={setPost} />
           <hr />
-          {post ? <EditPost /> : <AddPost onAdd={handleAddPost} />}
+          {post ? (
+            <EditPost post={post} onEdit={handleEditPost} />
+          ) : (
+            <AddPost onAdd={handleAddPost} />
+          )}
           {error && (
             <>
               <hr />
