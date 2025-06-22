@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Posts from "./components/Posts";
 import EditPost from "./components/EditPost";
 import AddPost from "./components/AddPost";
-import axios from "axios";
+import api from "./api/api";
 
 function App() {
   const [posts, setPosts] = useState([]);
@@ -18,13 +18,13 @@ function App() {
       ...post,
     };
 
-    const response = await axios.post("http://localhost:8000/posts", newPost);
+    const response = await api.post("/posts", newPost);
 
     setPosts([...posts, response.data]);
   };
   const handleEditPost = async (updatedPost) => {
    try{
-    await axios.patch(`http://localhost:8000/posts/${updatedPost.id}`, updatedPost)
+    await api.patch(`/posts/${updatedPost.id}`, updatedPost)
 
      setPosts(
       posts.map((post) => {
@@ -43,7 +43,7 @@ function App() {
   const handleDeletePost = async (id) => {
     try {
       if (confirm("Are you sure want to delete this post?")) {
-        await axios.delete(`http://localhost:8000/posts/${id}`);
+        await api.delete(`/posts/${id}`);
         setPosts(posts.filter((post) => post.id !== id));
       }
     } catch (error) {
@@ -55,7 +55,7 @@ function App() {
     let ignore = false;
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/posts");
+        const response = await api.get("/posts");
         if (response && !ignore) {
           setPosts(response.data);
         }
