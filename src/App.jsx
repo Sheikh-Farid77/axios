@@ -1,26 +1,32 @@
-import { useState } from "react";
-import data from "./db/data";
+import { useEffect, useState } from "react";
+// import data from "./db/data";
 import Posts from "./components/Posts";
 import EditPost from "./components/EditPost";
 import AddPost from "./components/AddPost";
+import axios from "axios";
 
 function App() {
-  const [posts, setPosts] = useState(data);
+  const [posts, setPosts] = useState([]);
   const [post, setPost] = useState(null);
   const [error, setError] = useState("");
 
-  const handleAddPost = (post) => {
+  const handleAddPost = async (post) => {
     const id = posts.length ? Number(posts[posts.length - 1].id) + 1 : 1;
-    setPosts([
-      ...posts,
-      {
-        id: id.toString(),
-        ...post,
-      },
-    ]);
+
+    const newPost = {
+      id: id.toString(),
+      ...post,
+    };
+
+    const response = await axios.post("http://localhost:8000/posts", newPost);
+
+    setPosts([...posts, response.data]);
   };
-  const handleEditPost = (updatedPost) => {
-    setPosts(
+  const handleEditPost = async (updatedPost) => {
+   try{
+    await axios.patch(`http://localhost:8000/posts/${updatedPost.id}`, updatedPost)
+
+     setPosts(
       posts.map((post) => {
         if (post.id === updatedPost.id) {
           return updatedPost;
@@ -29,11 +35,39 @@ function App() {
       })
     );
     setPost(null);
+   }catch(error){
+    setError(error.message)
+   }
   };
 
-  const handleDeletePost = (id) => {
-    setPosts(posts.filter((post) => post.id !== id));
+  const handleDeletePost = async (id) => {
+    try {
+      if (confirm("Are you sure want to delete this post?")) {
+        await axios.delete(`http://localhost:8000/posts/${id}`);
+        setPosts(posts.filter((post) => post.id !== id));
+      }
+    } catch (error) {
+      setError(error.message);
+    }
   };
+
+  useEffect(() => {
+    let ignore = false;
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/posts");
+        if (response && !ignore) {
+          setPosts(response.data);
+        }
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+    fetchData();
+
+    return () => (ignore = true);
+  }, []);
   return (
     <>
       <div>
